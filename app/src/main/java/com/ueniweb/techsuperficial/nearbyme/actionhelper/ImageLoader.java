@@ -18,7 +18,7 @@ public class ImageLoader {
                     .noPlaceholder()
 //                .resize(512, 512)
                     .fit()
-                    //  .error(R.drawable.placeholder_grey_logo)
+                    //  .error(R.drawable.)
                     .centerInside()
                     .networkPolicy(NetworkPolicy.OFFLINE)
                     .into(iv, new Callback() {
@@ -32,8 +32,8 @@ public class ImageLoader {
                             Picasso.with(context)
                                     .load(imageuri)
                                     .noPlaceholder()
-                                    /*.placeholder(R.drawable.logogrey_small)
-                                    .error(R.drawable.logogrey_small)*/
+                                    /*.placeholder(R.drawable.)
+                                    .error(R.drawable.)*/
                                     .fit()
                                     .centerInside()
                                     .into(iv, new Callback() {

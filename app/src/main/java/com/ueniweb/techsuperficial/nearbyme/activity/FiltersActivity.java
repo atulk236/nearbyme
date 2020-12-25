@@ -43,25 +43,8 @@ public class FiltersActivity extends AppCompatActivity {
 
     private void init() {
         initVariable();
-        // setListener();
         setView();
     }
-
-    /*private void setListener() {
-        selectAllcb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked){
-                    gymcb.setChecked(true);
-                    Cafecb.setChecked(true);
-                    restaurantcb.setChecked(true);
-                }
-
-            }
-        }
-        );
-    }*/
 
     private void setView() {
         String filter_selected = filterSession.getData(FilterSession.FILTER_SELECTED);
@@ -118,7 +101,6 @@ public class FiltersActivity extends AppCompatActivity {
                     Cafecb.setChecked(true);
                     restaurantcb.setChecked(true);
                 } else {
-
                     gymcb.setChecked(false);
                     Cafecb.setChecked(false);
                     restaurantcb.setChecked(false);
@@ -163,8 +145,9 @@ public class FiltersActivity extends AppCompatActivity {
                     }
 
                 }
-                Toast.makeText(mcontext, "Filtered Applied", Toast.LENGTH_SHORT).show();
-
+                else {
+                    onViewClicked();
+                }
                 startHomeActivity();
                 break;
         }
