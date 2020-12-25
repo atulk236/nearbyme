@@ -3,6 +3,7 @@ package com.ueniweb.techsuperficial.nearbyme.webservices;
 import android.content.Context;
 import android.widget.Toast;
 
+import com.ueniweb.techsuperficial.nearbyme.actionhelper.ShowDialog;
 import com.ueniweb.techsuperficial.nearbyme.listener.NearByPlacesResponse;
 import com.ueniweb.techsuperficial.nearbyme.model.Result;
 import com.ueniweb.techsuperficial.nearbyme.model.ServerResponse;
@@ -11,8 +12,7 @@ import com.ueniweb.techsuperficial.nearbyme.rest.ServerApiClient;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-
+import cn.pedant.SweetAlert.SweetAlertDialog;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -28,7 +28,7 @@ public class GetNearByPlacesApi implements Callback<ServerResponse<Result>> {
     }
 
     public void callGetDistributerListApi(long radius, String type, String latlong, String key) {
-        //   ShowDialog.showSweetDialog(mcontext, "Processing", "Please Wait", SweetAlertDialog.PROGRESS_TYPE);
+        ShowDialog.showSweetDialog(mcontext, "Processing", "Please Wait", SweetAlertDialog.PROGRESS_TYPE);
         RestApiService restApiService = ServerApiClient.getApi();
         Call<ServerResponse<Result>> call = restApiService.getNearbyPlaces(radius, type, latlong, key);
         call.enqueue(this);
@@ -38,9 +38,10 @@ public class GetNearByPlacesApi implements Callback<ServerResponse<Result>> {
     @Override
     public void onResponse(@NotNull Call<ServerResponse<Result>> call, Response<ServerResponse<Result>> response) {
         if (response.isSuccessful()) {
-            //   ShowDialog.dismissSweetDialog();
+            ShowDialog.dismissSweetDialog();
             mlistener.NearByPlaces(true, response.body().getResults());
         } else {
+            ShowDialog.dismissSweetDialog();
             Toast.makeText(mcontext, "Something wentssssssssssssss wrong", Toast.LENGTH_SHORT).show();
             mlistener.NearByPlaces(false, null);
         }
