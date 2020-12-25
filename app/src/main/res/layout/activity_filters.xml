@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp"
+    tools:context=".activity.FiltersActivity">
+
+    <CheckBox
+        android:id="@+id/select_allcb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select All"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/select_allcb"
+        app:layout_constraintLeft_toRightOf="@+id/select_allcb"
+        app:layout_constraintTop_toTopOf="@+id/select_allcb" />
+
+    <TextView
+        android:id="@+id/clear_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Clear All"
+        android:textColor="#6c60f5"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/select_allcb"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <CheckBox
+        android:id="@+id/gymcb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/select_allcb" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Gym"
+        app:layout_constraintBottom_toBottomOf="@+id/gymcb"
+        app:layout_constraintLeft_toRightOf="@+id/gymcb"
+        app:layout_constraintTop_toTopOf="@+id/gymcb" />
+
+    <CheckBox
+        android:id="@+id/Cafecb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gymcb" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cafe"
+        app:layout_constraintBottom_toBottomOf="@+id/Cafecb"
+        app:layout_constraintLeft_toRightOf="@+id/Cafecb"
+        app:layout_constraintTop_toTopOf="@+id/Cafecb" />
+
+    <CheckBox
+        android:id="@+id/restaurantcb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Cafecb" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Restaurant"
+        app:layout_constraintBottom_toBottomOf="@+id/restaurantcb"
+        app:layout_constraintLeft_toRightOf="@+id/restaurantcb"
+        app:layout_constraintTop_toTopOf="@+id/restaurantcb" />
+
+    <TextView
+        android:id="@+id/submit_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/btn_bg"
+        android:gravity="center"
+        android:padding="12dp"
+        android:text="Submit"
+        android:textColor="#fff"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
