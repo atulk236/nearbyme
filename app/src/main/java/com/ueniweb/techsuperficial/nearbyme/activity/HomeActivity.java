@@ -20,6 +20,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -51,6 +52,7 @@ import java.util.ArrayList;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import cn.pedant.SweetAlert.SweetAlertDialog;
 
 public class HomeActivity extends AppCompatActivity implements NearByPlacesResponse, LocationListener, OnMapReadyCallback, GoogleMap.OnMarkerClickListener, PlaceClickListener {
     Context mcontext;
@@ -82,9 +84,7 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         ButterKnife.bind(this);
-
         init();
-
     }
 
     private void init() {
@@ -97,6 +97,7 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
         if (PermissionsUtils.checkLocationPermission(HomeActivity.this) &&
                 PermissionsUtils.checkFineLocation(HomeActivity.this)) {
         }
+
         if (filter_selected != null && !filter_selected.equals("")) {
             getLocation();
         } else {
@@ -109,7 +110,7 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
 
     public Location getLocation() {
         try {
-            // ShowDialog.showSweetDialog(mcontext, "Getting your location", "Please Wait", SweetAlertDialog.PROGRESS_TYPE);
+            ShowDialog.showSweetDialog(mcontext, "Getting your location", "Please Wait", SweetAlertDialog.PROGRESS_TYPE);
             locationManager = (LocationManager) mcontext.getSystemService(LOCATION_SERVICE);
 
             // getting GPS status
@@ -120,8 +121,8 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
                     .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
             if (!isGPSEnabled && !isNetworkEnabled) {
-                //  ShowDialog.dismissSweetDialog();
-                // ShowDialog.showErrorDialog(mcontext, "check your location is enabled or not!");
+                ShowDialog.dismissSweetDialog();
+                 ShowDialog.showErrorDialog(mcontext, "check your location is enabled or not!");
             } else {
                 this.canGetLocation = true;
                 // First get location from Network Provider
@@ -240,20 +241,14 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
             GetNearByPlacesApi getNearByPlacesApi = new GetNearByPlacesApi(mcontext, this);
             getNearByPlacesApi.callGetDistributerListApi(1000, type, longlat,
                     "AIzaSyC1MUU1jDFB227nre1JmEqaxqWY7N6rOGE");
-        } else {
-            GetNearByPlacesApi getNearByPlacesApi = new GetNearByPlacesApi(mcontext, this);
-            getNearByPlacesApi.callGetDistributerListApi(1000, type, "28.7041,77.1025",
-                    "AIzaSyC1MUU1jDFB227nre1JmEqaxqWY7N6rOGE");
         }
 
     }
-
 
     private void setPlaceRv() {
         placesRv.setLayoutManager(new LinearLayoutManager(mcontext, LinearLayoutManager.HORIZONTAL, false));
         placesRv.setItemAnimator(new DefaultItemAnimator());
         placesRv.setAdapter(placesAdapter);
-
     }
 
     @OnClick({R.id.filter_tv, R.id.places_rv})
@@ -273,23 +268,25 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
         if (isRecieved) {
             resultlist.addAll(result);
             placesAdapter.setList(resultlist);
+
+            for (int i = 0; i < resultlist.size(); i++) {
+
+                mLatLng = new LatLng(resultlist.get(i).getGeometry().getLocation().getLat(),
+                        resultlist.get(i).getGeometry().getLocation().getLng());
+
+                renderMarker(resultlist.get(i).getIcon(), mLatLng, i);
+
+            }
         }
-        for (int i = 0; i < resultlist.size(); i++) {
-
-            mLatLng = new LatLng(resultlist.get(i).getGeometry().getLocation().getLat(),
-                    resultlist.get(i).getGeometry().getLocation().getLng());
-
-            renderMarker(resultlist.get(i).getIcon(), mLatLng, i);
-
-        }
-
     }
 
     @Override
     public void onLocationChanged(@NonNull Location location) {
         ShowDialog.dismissSweetDialog();
-
-
+        mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+        moveMapinitial(mLatLng);
+        longlat = location.getLatitude() + "," + location.getLongitude();
+        UpdateListViaFiltered();
     }
 
     @Override
@@ -297,15 +294,14 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
         mGoogleMap = googleMap;
         mGoogleMap.setMyLocationEnabled(true);
         mGoogleMap.setPadding(0, 0, 0, 500);
-       /* if (mLatLng != null) {
+        if (mLatLng != null) {
             moveMap(mLatLng);
-        }*/
+        }
         mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
                 // mLatLng = latLng;
                 //  mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                //   longlat = location.getLatitude() + "," + location.getLongitude();
                 //  UpdateListViaFiltered();
 
             }
@@ -320,8 +316,8 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
                 if (location != null) {
                     mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                     longlat = location.getLatitude() + "," + location.getLongitude();
-                    UpdateListViaFiltered();
                     moveMapinitial(mLatLng);
+                    UpdateListViaFiltered();
 
                 }
                 return false;
@@ -332,8 +328,6 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
 
     private void moveMap(LatLng latLng) {
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        // mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(10));
-
         mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(80));
         mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
 
@@ -341,7 +335,7 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
 
     private void moveMapinitial(LatLng latLng) {
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(10));
+        mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(15));
         mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
 
     }
@@ -381,23 +375,16 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-
         //moveMap(marker.getPosition());
         int position = (int) marker.getTag();
         Result result = resultlist.get(position);
         LatLng newlatlng;
         newlatlng = new LatLng(result.getGeometry().getLocation().getLat(),
                 result.getGeometry().getLocation().getLng());
-        //showBottomSheet(result);
         moveMap(newlatlng);
         placesRv.getLayoutManager().scrollToPosition(position);
         Place_dialog place_dialog = new Place_dialog(mcontext, result);
         place_dialog.show();
-      /*  Intent intent = new Intent(HomeActivity.this, PlaceDetail.class);
-        Gson gson = new Gson();
-        String json = gson.toJson(result);
-        intent.putExtra("result", json);
-        startActivity(intent);*/
         return false;
     }
 
@@ -407,14 +394,6 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
         Result result = resultlist.get(position);
         Place_dialog place_dialog = new Place_dialog(mcontext, result);
         place_dialog.show();
-        //showBottomSheet(result);
-   /*     Intent intent = new Intent(HomeActivity.this, PlaceDetail.class);
-        Gson gson = new Gson();
-        String json = gson.toJson(result);
-        intent.putExtra("result", json);
-        startActivity(intent);*/
     }
 
-    /*private void showBottomSheet(Result result) {
-    }*/
 }

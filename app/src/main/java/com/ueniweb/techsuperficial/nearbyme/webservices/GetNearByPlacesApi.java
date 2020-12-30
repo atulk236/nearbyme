@@ -9,9 +9,7 @@ import com.ueniweb.techsuperficial.nearbyme.model.Result;
 import com.ueniweb.techsuperficial.nearbyme.model.ServerResponse;
 import com.ueniweb.techsuperficial.nearbyme.rest.RestApiService;
 import com.ueniweb.techsuperficial.nearbyme.rest.ServerApiClient;
-
 import org.jetbrains.annotations.NotNull;
-
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -28,7 +26,7 @@ public class GetNearByPlacesApi implements Callback<ServerResponse<Result>> {
     }
 
     public void callGetDistributerListApi(long radius, String type, String latlong, String key) {
-        //ShowDialog.showSweetDialog(mcontext, "Processing", "Please Wait", SweetAlertDialog.PROGRESS_TYPE);
+        ShowDialog.showSweetDialog(mcontext, "Processing", "Please Wait", SweetAlertDialog.PROGRESS_TYPE);
         RestApiService restApiService = ServerApiClient.getApi();
         Call<ServerResponse<Result>> call = restApiService.getNearbyPlaces(radius, type, latlong, key);
         call.enqueue(this);
