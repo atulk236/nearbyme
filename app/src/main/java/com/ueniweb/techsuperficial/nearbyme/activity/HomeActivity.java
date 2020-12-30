@@ -20,7 +20,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -52,7 +51,6 @@ import java.util.ArrayList;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import cn.pedant.SweetAlert.SweetAlertDialog;
 
 public class HomeActivity extends AppCompatActivity implements NearByPlacesResponse, LocationListener, OnMapReadyCallback, GoogleMap.OnMarkerClickListener, PlaceClickListener {
     Context mcontext;
@@ -110,7 +108,6 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
 
     public Location getLocation() {
         try {
-            ShowDialog.showSweetDialog(mcontext, "Getting your location", "Please Wait", SweetAlertDialog.PROGRESS_TYPE);
             locationManager = (LocationManager) mcontext.getSystemService(LOCATION_SERVICE);
 
             // getting GPS status
@@ -122,7 +119,8 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
 
             if (!isGPSEnabled && !isNetworkEnabled) {
                 ShowDialog.dismissSweetDialog();
-                 ShowDialog.showErrorDialog(mcontext, "check your location is enabled or not!");
+                ShowDialog.showErrorDialog(mcontext, "check your location is enabled or not!");
+
             } else {
                 this.canGetLocation = true;
                 // First get location from Network Provider
@@ -135,44 +133,45 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
                         ActivityCompat.requestPermissions((Activity) mcontext, new String[]
                                         {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                                 101);
-                    }
-                    locationManager.requestLocationUpdates(
-                            LocationManager.NETWORK_PROVIDER,
-                            MIN_TIME_BW_UPDATES,
-                            MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-
-                    Log.d("Network", "Network");
-                    if (locationManager != null) {
-                        location = locationManager
-                                .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-
-                        if (location != null) {
-                            latitude = location.getLatitude();
-                            longitude = location.getLongitude();
-                        }
-                    }
-                }
-
-                // if GPS Enabled get lat/long using GPS Services
-                if (isGPSEnabled) {
-                    if (location == null) {
-                        //check the network permission
-                        if (ActivityCompat.checkSelfPermission(mcontext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mcontext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                            ActivityCompat.requestPermissions((Activity) mcontext, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
-                        }
+                    } else {
                         locationManager.requestLocationUpdates(
-                                LocationManager.GPS_PROVIDER,
+                                LocationManager.NETWORK_PROVIDER,
                                 MIN_TIME_BW_UPDATES,
                                 MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
 
-                        Log.d("GPS Enabled", "GPS Enabled");
+                        Log.d("Network", "Network");
                         if (locationManager != null) {
                             location = locationManager
-                                    .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                                    .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
                             if (location != null) {
                                 latitude = location.getLatitude();
                                 longitude = location.getLongitude();
+                            }
+                        }
+                    }
+
+                    // if GPS Enabled get lat/long using GPS Services
+                    if (isGPSEnabled) {
+                        if (location == null) {
+                            //check the network permission
+                            if (ActivityCompat.checkSelfPermission(mcontext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mcontext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                ActivityCompat.requestPermissions((Activity) mcontext, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
+                            }
+                            locationManager.requestLocationUpdates(
+                                    LocationManager.GPS_PROVIDER,
+                                    MIN_TIME_BW_UPDATES,
+                                    MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+
+                            Log.d("GPS Enabled", "GPS Enabled");
+                            if (locationManager != null) {
+                                location = locationManager
+                                        .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+                                if (location != null) {
+                                    latitude = location.getLatitude();
+                                    longitude = location.getLongitude();
+                                }
                             }
                         }
                     }
@@ -291,39 +290,58 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mGoogleMap = googleMap;
-        mGoogleMap.setMyLocationEnabled(true);
-        mGoogleMap.setPadding(0, 0, 0, 500);
-        if (mLatLng != null) {
-            moveMap(mLatLng);
-        }
-        mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-                // mLatLng = latLng;
-                //  mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                //  UpdateListViaFiltered();
+        // getting GPS status
+        try {
+            isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 
-            }
-        });
-        mGoogleMap.setOnMarkerClickListener(this::onMarkerClick);
-        mGoogleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
-            @Override
-            public boolean onMyLocationButtonClick() {
+            // getting network status
+            isNetworkEnabled = locationManager
+                    .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
-                Location location = mGoogleMap.getMyLocation();
+            if (!isGPSEnabled && !isNetworkEnabled) {
+                ShowDialog.dismissSweetDialog();
+                ShowDialog.showErrorDialog(mcontext, "check your location is enabled or not!");
+            } else {
+                if (ActivityCompat.checkSelfPermission(mcontext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mcontext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions((Activity) mcontext, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
+                } else {
+                    mGoogleMap = googleMap;
+                    mGoogleMap.setMyLocationEnabled(true);
+                    mGoogleMap.setPadding(0, 0, 0, 500);
+                    if (mLatLng != null) {
+                        moveMap(mLatLng);
+                    }
+                    mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                        @Override
+                        public void onMapClick(LatLng latLng) {
+                            // mLatLng = latLng;
+                            //  mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                            //  UpdateListViaFiltered();
 
-                if (location != null) {
-                    mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    longlat = location.getLatitude() + "," + location.getLongitude();
-                    moveMapinitial(mLatLng);
-                    UpdateListViaFiltered();
+                        }
+                    });
+                    mGoogleMap.setOnMarkerClickListener(this::onMarkerClick);
+                    mGoogleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+                        @Override
+                        public boolean onMyLocationButtonClick() {
 
+                            Location location = mGoogleMap.getMyLocation();
+
+                            if (location != null) {
+                                mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                                longlat = location.getLatitude() + "," + location.getLongitude();
+                                moveMapinitial(mLatLng);
+                                UpdateListViaFiltered();
+
+                            }
+                            return false;
+                        }
+                    });
                 }
-                return false;
             }
-        });
-
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void moveMap(LatLng latLng) {
