@@ -13,13 +13,6 @@ import retrofit2.http.Query;
 
 public interface RestApiService {
 
-   /* @POST("signup")
-    @Headers("Content-Type: application/json")
-    Call<ServerResponse<SignUpResponse>> userSignup(@Body SignUpRequest signUpRequest, @Query("isUserAvailable") boolean isUserAvailable);
-
-    @PUT("signup/usernameAvailable")
-    @Headers("Content-Type: application/json")
-    Call<ServerResponse> checkUserAvailable(@Query("query") String username);*/
     @GET(ServerEndPointUrl.GETNEARBYPLACES)
     @Headers("Content-Type: application/json")
     Call<ServerResponse<Result>> getNearbyPlaces(@Query("radius") long radius,

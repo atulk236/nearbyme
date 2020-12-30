@@ -8,10 +8,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.ueniweb.techsuperficial.nearbyme.R;
 import com.ueniweb.techsuperficial.nearbyme.actionhelper.ImageLoader;
+import com.ueniweb.techsuperficial.nearbyme.listener.PlaceClickListener;
 import com.ueniweb.techsuperficial.nearbyme.model.Result;
 
 import java.util.ArrayList;
@@ -20,12 +23,12 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.PlacesViewHolder> {
-
-
     private Context mContext;
     ArrayList<Result> placeslist;
+    PlaceClickListener placeClickListener;
 
-    public PlacesAdapter(Context mContext) {
+    public PlacesAdapter(Context mContext,PlaceClickListener placeClickListener) {
+        this.placeClickListener=placeClickListener;
         this.mContext = mContext;
         placeslist = new ArrayList<>();
     }
@@ -43,6 +46,13 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.PlacesView
         holder.titleTv.setText(result.getName());
         holder.titleDesTv.setText(result.getTypes().get(0));
         ImageLoader.loadImage(result.getIcon(), holder.placeIv, mContext);
+        holder.conslayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                LatLng latLng=new LatLng(result.getGeometry().getLocation().getLat(),result.getGeometry().getLocation().getLng());
+                placeClickListener.PlaceClicked(holder.getAdapterPosition(),latLng);
+            }
+        });
     }
 
     @Override
@@ -63,6 +73,8 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.PlacesView
         TextView titleTv;
         @BindView(R.id.title_des_tv)
         TextView titleDesTv;
+        @BindView(R.id.conslayout)
+        ConstraintLayout conslayout;
 
         public PlacesViewHolder(@NonNull View itemView) {
             super(itemView);

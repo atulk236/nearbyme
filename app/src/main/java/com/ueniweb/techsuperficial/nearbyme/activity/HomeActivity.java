@@ -5,10 +5,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -21,12 +24,26 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 import com.ueniweb.techsuperficial.nearbyme.R;
+import com.ueniweb.techsuperficial.nearbyme.actionhelper.CircleTransform;
 import com.ueniweb.techsuperficial.nearbyme.actionhelper.FilterSession;
 import com.ueniweb.techsuperficial.nearbyme.actionhelper.PermissionsUtils;
 import com.ueniweb.techsuperficial.nearbyme.actionhelper.ShowDialog;
 import com.ueniweb.techsuperficial.nearbyme.adapter.PlacesAdapter;
+import com.ueniweb.techsuperficial.nearbyme.dialog.Place_dialog;
 import com.ueniweb.techsuperficial.nearbyme.listener.NearByPlacesResponse;
+import com.ueniweb.techsuperficial.nearbyme.listener.PlaceClickListener;
+import com.ueniweb.techsuperficial.nearbyme.model.Result;
 import com.ueniweb.techsuperficial.nearbyme.webservices.GetNearByPlacesApi;
 
 import java.util.ArrayList;
@@ -34,10 +51,8 @@ import java.util.ArrayList;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import cn.pedant.SweetAlert.SweetAlertDialog;
 
-public class HomeActivity extends AppCompatActivity implements NearByPlacesResponse, LocationListener {
-
+public class HomeActivity extends AppCompatActivity implements NearByPlacesResponse, LocationListener, OnMapReadyCallback, GoogleMap.OnMarkerClickListener, PlaceClickListener {
     Context mcontext;
     @BindView(R.id.filter_tv)
     TextView filterTv;
@@ -45,7 +60,7 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
     RecyclerView placesRv;
     PlacesAdapter placesAdapter;
     FilterSession filterSession;
-    ArrayList resultlist;
+    ArrayList<Result> resultlist;
     @BindView(R.id.nodata_tv)
     TextView nodata_tv;
     LocationManager locationManager;
@@ -59,6 +74,8 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
     String longlat;
     private static final long MIN_TIME_BW_UPDATES = 1000 * 5 * 1; // 5 second
     String filter_selected;
+    private GoogleMap mGoogleMap;
+    LatLng mLatLng;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +90,10 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
     private void init() {
         initVariable();
         setPlaceRv();
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
         if (PermissionsUtils.checkLocationPermission(HomeActivity.this) &&
                 PermissionsUtils.checkFineLocation(HomeActivity.this)) {
         }
@@ -88,7 +109,7 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
 
     public Location getLocation() {
         try {
-            ShowDialog.showSweetDialog(mcontext, "Getting your location", "Please Wait", SweetAlertDialog.PROGRESS_TYPE);
+            // ShowDialog.showSweetDialog(mcontext, "Getting your location", "Please Wait", SweetAlertDialog.PROGRESS_TYPE);
             locationManager = (LocationManager) mcontext.getSystemService(LOCATION_SERVICE);
 
             // getting GPS status
@@ -99,8 +120,8 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
                     .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
             if (!isGPSEnabled && !isNetworkEnabled) {
-                ShowDialog.dismissSweetDialog();
-                ShowDialog.showErrorDialog(mcontext, "check your location is enabled or not!");
+                //  ShowDialog.dismissSweetDialog();
+                // ShowDialog.showErrorDialog(mcontext, "check your location is enabled or not!");
             } else {
                 this.canGetLocation = true;
                 // First get location from Network Provider
@@ -167,7 +188,7 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
 
     private void initVariable() {
         mcontext = HomeActivity.this;
-        placesAdapter = new PlacesAdapter(mcontext);
+        placesAdapter = new PlacesAdapter(mcontext, this);
         filterSession = new FilterSession(mcontext);
         resultlist = new ArrayList();
         resultlist.clear();
@@ -229,8 +250,7 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
 
 
     private void setPlaceRv() {
-
-        placesRv.setLayoutManager(new LinearLayoutManager(mcontext));
+        placesRv.setLayoutManager(new LinearLayoutManager(mcontext, LinearLayoutManager.HORIZONTAL, false));
         placesRv.setItemAnimator(new DefaultItemAnimator());
         placesRv.setAdapter(placesAdapter);
 
@@ -254,13 +274,147 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
             resultlist.addAll(result);
             placesAdapter.setList(resultlist);
         }
+        for (int i = 0; i < resultlist.size(); i++) {
+
+            mLatLng = new LatLng(resultlist.get(i).getGeometry().getLocation().getLat(),
+                    resultlist.get(i).getGeometry().getLocation().getLng());
+
+            renderMarker(resultlist.get(i).getIcon(), mLatLng, i);
+
+        }
+
     }
 
     @Override
     public void onLocationChanged(@NonNull Location location) {
         ShowDialog.dismissSweetDialog();
-        longlat = location.getLatitude() + "," + location.getLongitude();
-        UpdateListViaFiltered();
+
 
     }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mGoogleMap = googleMap;
+        mGoogleMap.setMyLocationEnabled(true);
+        mGoogleMap.setPadding(0, 0, 0, 500);
+       /* if (mLatLng != null) {
+            moveMap(mLatLng);
+        }*/
+        mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                // mLatLng = latLng;
+                //  mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                //   longlat = location.getLatitude() + "," + location.getLongitude();
+                //  UpdateListViaFiltered();
+
+            }
+        });
+        mGoogleMap.setOnMarkerClickListener(this::onMarkerClick);
+        mGoogleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+            @Override
+            public boolean onMyLocationButtonClick() {
+
+                Location location = mGoogleMap.getMyLocation();
+
+                if (location != null) {
+                    mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    longlat = location.getLatitude() + "," + location.getLongitude();
+                    UpdateListViaFiltered();
+                    moveMapinitial(mLatLng);
+
+                }
+                return false;
+            }
+        });
+
+    }
+
+    private void moveMap(LatLng latLng) {
+        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        // mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(10));
+
+        mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(80));
+        mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
+
+    }
+
+    private void moveMapinitial(LatLng latLng) {
+        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(10));
+        mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
+
+    }
+
+    private void renderMarker(String image, LatLng latLng, int position) {
+        Log.e("LOCATION", "renderMarker: " + latLng);
+        if (image != null && !TextUtils.isEmpty(image)) {
+            LatLng finalLatLng = latLng;
+            Picasso.with(mcontext)
+                    .load(image)
+                    .transform(new CircleTransform())
+                    .resize(150, 150)
+                    .into(new Target() {
+                        @Override
+                        public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
+                            Marker marker = mGoogleMap.addMarker(new MarkerOptions()
+                                    .position(finalLatLng)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(bitmap)));
+                            marker.setTag(position);
+                        }
+
+
+                        @Override
+                        public void onBitmapFailed(Drawable errorDrawable) {
+                            Log.e("HomeActivity", "onBitmapFailed: ");
+                        }
+
+                        @Override
+                        public void onPrepareLoad(Drawable placeHolderDrawable) {
+                            Log.e("HomeActivity", ": placeHolderDrawable");
+
+                        }
+                    });
+        }
+    }
+
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+
+        //moveMap(marker.getPosition());
+        int position = (int) marker.getTag();
+        Result result = resultlist.get(position);
+        LatLng newlatlng;
+        newlatlng = new LatLng(result.getGeometry().getLocation().getLat(),
+                result.getGeometry().getLocation().getLng());
+        //showBottomSheet(result);
+        moveMap(newlatlng);
+        placesRv.getLayoutManager().scrollToPosition(position);
+        Place_dialog place_dialog = new Place_dialog(mcontext, result);
+        place_dialog.show();
+      /*  Intent intent = new Intent(HomeActivity.this, PlaceDetail.class);
+        Gson gson = new Gson();
+        String json = gson.toJson(result);
+        intent.putExtra("result", json);
+        startActivity(intent);*/
+        return false;
+    }
+
+    @Override
+    public void PlaceClicked(int position, LatLng latLng) {
+        moveMap(latLng);
+        Result result = resultlist.get(position);
+        Place_dialog place_dialog = new Place_dialog(mcontext, result);
+        place_dialog.show();
+        //showBottomSheet(result);
+   /*     Intent intent = new Intent(HomeActivity.this, PlaceDetail.class);
+        Gson gson = new Gson();
+        String json = gson.toJson(result);
+        intent.putExtra("result", json);
+        startActivity(intent);*/
+    }
+
+    /*private void showBottomSheet(Result result) {
+    }*/
 }

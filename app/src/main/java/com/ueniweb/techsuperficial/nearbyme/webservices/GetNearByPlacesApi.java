@@ -28,7 +28,7 @@ public class GetNearByPlacesApi implements Callback<ServerResponse<Result>> {
     }
 
     public void callGetDistributerListApi(long radius, String type, String latlong, String key) {
-        ShowDialog.showSweetDialog(mcontext, "Processing", "Please Wait", SweetAlertDialog.PROGRESS_TYPE);
+        //ShowDialog.showSweetDialog(mcontext, "Processing", "Please Wait", SweetAlertDialog.PROGRESS_TYPE);
         RestApiService restApiService = ServerApiClient.getApi();
         Call<ServerResponse<Result>> call = restApiService.getNearbyPlaces(radius, type, latlong, key);
         call.enqueue(this);
@@ -42,7 +42,7 @@ public class GetNearByPlacesApi implements Callback<ServerResponse<Result>> {
             mlistener.NearByPlaces(true, response.body().getResults());
         } else {
             ShowDialog.dismissSweetDialog();
-            Toast.makeText(mcontext, "Something wentssssssssssssss wrong", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mcontext, "Something wents wrong", Toast.LENGTH_SHORT).show();
             mlistener.NearByPlaces(false, null);
         }
 
