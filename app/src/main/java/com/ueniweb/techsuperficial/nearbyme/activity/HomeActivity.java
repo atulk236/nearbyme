@@ -236,11 +236,17 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
     }
 
     private void callGEtPlacesApi(String type) {
-        if (longlat != null && !longlat.equals("")) {
+        //for static location
+        GetNearByPlacesApi getNearByPlacesApi = new GetNearByPlacesApi(mcontext, this);
+        getNearByPlacesApi.callGetDistributerListApi(3000, type, "28.6304,77.2177",
+                "yourkey");
+
+        //for dynamic location
+       /* if (longlat != null && !longlat.equals("")) {
             GetNearByPlacesApi getNearByPlacesApi = new GetNearByPlacesApi(mcontext, this);
-            getNearByPlacesApi.callGetDistributerListApi(1000, type, longlat,
-                    "AIzaSyC1MUU1jDFB227nre1JmEqaxqWY7N6rOGE");
-        }
+            getNearByPlacesApi.callGetDistributerListApi(3000, type, longlat,
+                    "AIzaSyD0AQBJ_BwInY5Tv_0tqGPJIWL7FcllnH0");
+        }*/
 
     }
 
@@ -282,9 +288,18 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
     @Override
     public void onLocationChanged(@NonNull Location location) {
         ShowDialog.dismissSweetDialog();
-        mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+        //for dynamic location
+       /* mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
         moveMapinitial(mLatLng);
         longlat = location.getLatitude() + "," + location.getLongitude();
+        UpdateListViaFiltered();*/
+
+        //for static location(for now used static long lat)
+        String[] latlong =  "28.6304,77.2177".split(",");
+        double latitude = Double.parseDouble(latlong[0]);
+        double longitude = Double.parseDouble(latlong[1]);
+        LatLng locationf = new LatLng(latitude, longitude);
+        moveMapinitial(locationf);
         UpdateListViaFiltered();
     }
 
@@ -308,9 +323,18 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
                     mGoogleMap = googleMap;
                     mGoogleMap.setMyLocationEnabled(true);
                     mGoogleMap.setPadding(0, 0, 0, 500);
-                    if (mLatLng != null) {
+                    //for dynamic location
+                  /*  if (mLatLng != null) {
                         moveMap(mLatLng);
-                    }
+                    }*/
+
+                  //for static location
+                    String[] latlong =  "28.6304,77.2177".split(",");
+                    double latitude = Double.parseDouble(latlong[0]);
+                    double longitude = Double.parseDouble(latlong[1]);
+                    LatLng locationf = new LatLng(latitude, longitude);
+                    moveMap(locationf);
+
                     mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                         @Override
                         public void onMapClick(LatLng latLng) {
@@ -328,12 +352,22 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
                             Location location = mGoogleMap.getMyLocation();
 
                             if (location != null) {
-                                mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                                //for dynamic location
+                              /*  mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                                 longlat = location.getLatitude() + "," + location.getLongitude();
-                                moveMapinitial(mLatLng);
-                                UpdateListViaFiltered();
+                                moveMapinitial(mLatLng);*/
+                               // UpdateListViaFiltered();
 
                             }
+                            //for static location
+                            String[] latlong =  "28.6304,77.2177".split(",");
+                            double latitude = Double.parseDouble(latlong[0]);
+                            double longitude = Double.parseDouble(latlong[1]);
+                            LatLng locationf = new LatLng(latitude, longitude);
+                            longlat="28.6304,77.2177";
+                            moveMapinitial(locationf);
+                            UpdateListViaFiltered();
+
                             return false;
                         }
                     });
@@ -399,7 +433,12 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
         LatLng newlatlng;
         newlatlng = new LatLng(result.getGeometry().getLocation().getLat(),
                 result.getGeometry().getLocation().getLng());
-        moveMap(newlatlng);
+
+        String[] latlong =  "28.6304,77.2177".split(",");
+        double latitude = Double.parseDouble(latlong[0]);
+        double longitude = Double.parseDouble(latlong[1]);
+        LatLng locationf = new LatLng(latitude, longitude);
+        moveMap(locationf);
         placesRv.getLayoutManager().scrollToPosition(position);
         Place_dialog place_dialog = new Place_dialog(mcontext, result);
         place_dialog.show();
