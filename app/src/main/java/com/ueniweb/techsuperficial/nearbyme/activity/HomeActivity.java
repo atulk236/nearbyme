@@ -245,7 +245,7 @@ public class HomeActivity extends AppCompatActivity implements NearByPlacesRespo
        /* if (longlat != null && !longlat.equals("")) {
             GetNearByPlacesApi getNearByPlacesApi = new GetNearByPlacesApi(mcontext, this);
             getNearByPlacesApi.callGetDistributerListApi(3000, type, longlat,
-                    "AIzaSyD0AQBJ_BwInY5Tv_0tqGPJIWL7FcllnH0");
+                    "your key");
         }*/
 
     }
